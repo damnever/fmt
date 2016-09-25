@@ -147,18 +147,19 @@ class Parser(object):
             value = reader.read_util('{')
             if value is None:
                 value = reader.read(reader.remains())
-                sv, prev, first = [value], -2, -len(nodes)
-                while prev >= first and isinstance(nodes[prev], Text):
-                    sv.append(nodes[prev]._content)
-                    prev -= 1
-                sv = ''.join(sv[::-1])
-                lb, rb = sv.count('{')%2, value.count('}')%2
-                if lb != rb:
-                    raise SyntaxError(
-                        'number of "{{" and "}}" doesnot equal'
-                        ' or odd exists after position {}'.format(
-                            reader.pos-len(sv))
-                    )
+                if any(c not in value for c in '{}'):
+                    sv, prev, first = [value], -2, -len(nodes)
+                    while prev >= first and isinstance(nodes[prev], Text):
+                        sv.append(nodes[prev]._content)
+                        prev -= 1
+                    sv = ''.join(sv[::-1])
+                    lb, rb = sv.count('{')%2, value.count('}')%2
+                    if lb != rb or lb != 0:
+                        raise SyntaxError(
+                            'number of "{{" and "}}" doesnot equal'
+                            ' or odd exists after position {}'.format(
+                                reader.pos-len(sv))
+                        )
                 nodes.append(Text(value))
                 break
             elif '}' in value:

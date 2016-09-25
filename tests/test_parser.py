@@ -124,3 +124,7 @@ def test_parse():
         Parser('text {{name}').parse()
     with pytest.raises(SyntaxError):
         Parser('text {{{name}').parse()
+    with pytest.raises(SyntaxError):
+        Parser('text {name}}').parse()
+    with pytest.raises(SyntaxError):
+        Parser('text {{name}}}').parse()
