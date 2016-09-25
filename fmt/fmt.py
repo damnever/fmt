@@ -44,7 +44,7 @@ class Reader(object):
         pass
 
     def __init__(self, f_str):
-        self._f_tr = f_str
+        self._f_str = f_str
         self._next_pos = 0
         self._length = len(f_str)
 
@@ -54,26 +54,27 @@ class Reader(object):
 
     def read_util(self, ch):
         self._check_eof()
-        end_pos = self._f_tr.find(ch, self._next_pos)
+        end_pos = self._f_str.find(ch, self._next_pos)
         if end_pos < 0:
             return None
-        value = self._f_tr[self._next_pos: end_pos]
+        value = self._f_str[self._next_pos: end_pos]
         self._next_pos = end_pos
         return value
 
     def read(self, n=1):
         self._check_eof()
         end_pos = self._next_pos + n
-        value = self._f_tr[self._next_pos: end_pos]
+        value = self._f_str[self._next_pos: end_pos]
         self._next_pos = end_pos
         return value
 
     def peek(self, offset=0):
-        self._check_eof()
-        return self._f_tr[self._next_pos+offset]
+        pos = self._next_pos+offset
+        self._check_eof(pos)
+        return self._f_str[pos]
 
     def rest(self, start):
-        return self._f_tr[start:]
+        return self._f_str[start:]
 
     def remains(self):
         return self._length - self._next_pos
@@ -81,9 +82,10 @@ class Reader(object):
     def is_eof(self):
         return self._next_pos >= self._length
 
-    def _check_eof(self):
-        if self.is_eof():
+    def _check_eof(self, pos=None):
+        if self.is_eof() or (pos and pos >= self._length):
             raise self.EOF()
+
 
 
 class Node(object):
@@ -183,7 +185,7 @@ class Parser(object):
 
         return nodes
 
-    def _parse_escape(self, _mbp=re.compile(r"\s+{", re.S)):
+    def _parse_escape(self, _mbp=re.compile(r"\s*\{", re.S)):
         reader = self._reader
         braces, is_comp, skip = 1, False, False
 
@@ -196,7 +198,7 @@ class Parser(object):
 
             reader.read(braces-1)
             if braces % 2 == 0:
-                if _mbp.match(reader.rest(reader.pos+braces-1)):
+                if _mbp.match(reader.rest(reader.pos)) is not None:
                     skip = True
                 else:  # assume the next is dict/ comprehensions
                     is_comp = True
