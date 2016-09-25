@@ -9,7 +9,7 @@ def f_str():
     return 'a = {a}, b = {b!r}, c = {{{c()}}}'
 
 
-@pytest.fixture(scope='funciton')
+@pytest.fixture(scope='function')
 def reader(f_str):
     return Reader(f_str)
 
@@ -17,8 +17,9 @@ def reader(f_str):
 def test_read_util(f_str, reader):
     assert f_str[:f_str.find('{')] == reader.read_util('{')
     assert reader.pos == 4
-    pos = f_str.find('}', 4)
-    assert f_str[4: pos] == reader.read_util('{')
+    reader._next_pos += 1
+    pos = f_str.find('{', 5)
+    assert f_str[5: pos] == reader.read_util('{')
     assert reader.pos == pos
     assert reader.read_util('8') is None
     reader._next_pos = len(f_str)

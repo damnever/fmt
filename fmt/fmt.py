@@ -49,10 +49,6 @@ class Reader(object):
         self._length = len(f_str)
 
     @property
-    def length(self):
-        return self._length
-
-    @property
     def pos(self):
         return self._next_pos
 
@@ -150,9 +146,26 @@ class Parser(object):
             # text
             value = reader.read_util('{')
             if value is None:
-                value = reader.read(reader.length - reader.pos)
+                value = reader.read(reader.remains())
+                sv, prev, first = [value], -2, -len(nodes)
+                while prev >= first and isinstance(nodes[prev], Text):
+                    sv.append(nodes[prev]._content)
+                    prev -= 1
+                sv = ''.join(sv[::-1])
+                lb, rb = sv.count('{')%2, value.count('}')%2
+                if lb != rb:
+                    raise SyntaxError(
+                        'number of "{{" and "}}" doesnot equal'
+                        ' or odd exists after position {}'.format(
+                            reader.pos-len(sv))
+                    )
                 nodes.append(Text(value))
                 break
+            elif '}' in value:
+                raise SyntaxError(
+                    'Unexpect "}}" after position {}'.format(
+                        reader.pos-len(value))
+                )
             nodes.append(Text(value))
             reader.read()
 
@@ -161,14 +174,14 @@ class Parser(object):
             if skip:
                 nodes.append(Text('{' * ((braces+1) >> 1)))
                 continue
-            else:
+            elif braces > 1:
                 nodes.append(Text('{' * (braces >> 1)))
 
             # placeholders
             node_str = reader.read_util('}')
             if node_str is None:
                 raise SyntaxError(
-                    'expect "}" after position {}'.format(reader.pos))
+                    'expect "}}" after position {}'.format(reader.pos))
             if is_comp:
                 node_str = '{' + node_str + '}'
             node = self._parse_node(node_str)
@@ -205,9 +218,13 @@ class Parser(object):
             if braces % 2 == 0:
                 if _mbp.match(reader.rest(reader.pos)) is not None:
                     skip = True
-                else:  # assume the next is dict/ comprehensions
-                    is_comp = True
-                    braces -= 1
+                else:  # check if the next is dict/ comprehensions
+                    rest = reader.rest(reader.pos)
+                    if ' for ' in rest and ' in ' in rest:
+                        is_comp = True
+                        braces -= 1
+                    else:
+                        skip = True
 
         return braces, is_comp, skip
 
