@@ -232,6 +232,8 @@ class Parser(object):
                     'need format specifier after ":"'
                     ' at position {}'.format(pos + len(left))
                 )
+            elif ')' in fmt_spec or '}' in fmt_spec or 'lambda' in left:
+                left = node_str
         else:
             left = splitd[0]
 
