@@ -49,6 +49,10 @@ class Reader(object):
         self._length = len(f_str)
 
     @property
+    def length(self):
+        return self._length
+
+    @property
     def pos(self):
         return self._next_pos
 
@@ -111,7 +115,7 @@ class Constant(Node):
         value = namespace.get(name, None)
         if value is None:
             raise NameError(
-                '"{}" cannot be found in any namespace.'.format(name))
+                '"{}" cannot be found in any namespaces.'.format(name))
         return self._fmt.format(**{name: value})
 
 
@@ -128,7 +132,7 @@ class Expression(Node):
         except NameError as e:
             name = e.args[0].split("'", 3)[1]
             raise NameError(
-                '"{}" cannot be found in any namespace.'.format(name))
+                '"{}" cannot be found in any namespaces.'.format(name))
         return self._fmt.format(**ns)
 
 
@@ -146,8 +150,9 @@ class Parser(object):
             # text
             value = reader.read_util('{')
             if value is None:
-                raise SyntaxError(
-                    'expect "{" after position {}'.format(reader.pos))
+                value = reader.read(reader.length - reader.pos)
+                nodes.append(Text(value))
+                break
             nodes.append(Text(value))
             reader.read()
 
