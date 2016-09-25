@@ -185,7 +185,7 @@ class Parser(object):
 
         return nodes
 
-    def _parse_escape(self, _mbp=re.compile(r"\s*\{", re.S)):
+    def _parse_escape(self, _mbp=re.compile(r"\s+?\{", re.S)):
         reader = self._reader
         braces, is_comp, skip = 1, False, False
 

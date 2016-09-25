@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import pytest
-from fmt.fmt import Parser, Constant, Expression
+from fmt.fmt import Parser, Constant, Expression, Reader
 
 
 def test_parse_node_str():
@@ -13,6 +13,13 @@ def test_parse_node_str():
     assert 'name' == parser._parse_node_str('name!a')
     assert 'name' == parser._parse_node_str('name:fmt')
     assert 'name' == parser._parse_node_str('name!r:fmt')
+    assert ('{k:v for kv in d.items()}' ==
+            parser._parse_node_str('{k:v for kv in d.items()}'))
+    assert ('{i for i in range(5)}' ==
+            parser._parse_node_str('{i for i in range(5)}'))
+    assert ('map(lambda x: x, ls)' ==
+            parser._parse_node_str('map(lambda x: x, ls)'))
+
 
     with pytest.raises(SyntaxError):
         parser._parse_node_str('name!n')
@@ -39,12 +46,15 @@ def test_parse_node():
 
 
 def test_parse_escape():
-    # Note: there is one '{' has been readed
-    assert (3, False, True) == Parser('{ ')._parse_escape()
+    # Note: assume there is one '{' has been readed
+    assert (2, False, True) == Parser('{ {')._parse_escape()
     assert (3, False, False) == Parser('{{ ')._parse_escape()
-    assert (3, False, False) == Parser('{ {')._parse_escape()
-    assert (3, False, False) == Parser('{{{ {')._parse_escape()
-    assert (4, True, False) == Parser('{{{')._parse_escape()
+    assert (3, False, False) == Parser('{{ {')._parse_escape()
+    assert (4, False, True) == Parser('{{{ {')._parse_escape()
+    assert (3, True, False) == Parser('{{{ ')._parse_escape()
+
+    with pytest.raises(Reader.EOF):
+        Parser('{{{')._parse_escape()
 
 
 def test_parse():

@@ -3,7 +3,7 @@ f-strings(Python 3.6) style literal string interpolation.
 
 Ref: https://www.python.org/dev/peps/pep-0498/
 
-Currently I got stuck in some corner cases, need to find a better way, define a micro-language?..
+:cry:
 
 Example
 -------
