@@ -91,28 +91,31 @@ class Expression(Node):
 class Parser(object):
     _PATTERN_SPEC = re.compile(
         r"""
-        (?P<ltext>[^\{]*)
+        (?P<ltext>[^\{\}]*)
         (?P<lbrace>\{)?
             (?P<lbraces>(?(lbrace)[\s\{]*))
         (?P<mtext>[^\{\}]*)
         (?P<rbrace>\})?
             (?P<rbraces>(?(rbrace)[\s\}]*))
-        (?P<rtext>[^\{]*)
+        (?P<rtext>[^\{\}]*)
         """, re.S|re.X|re.M
     )
-    _PATTERN_COMP = re.compile(r'\w\s+for\s+\w\s+in\s+.+', re.S|re.X|re.M)
+    _PATTERN_COMP = re.compile(
+        r'[a-zA-Z0-9_:]+\s+for\s+[a-zA-Z0-9_,]+\s+in\s+.+',
+        re.S|re.X|re.M)
     _ast_parse = partial(ast.parse, filename='<f-strings>', mode='eval')
 
     def __init__(self, f_str):
         self._f_str = f_str
 
     def parse(self, _pattern=_PATTERN_SPEC):
-        if self._f_str.isspace():
-            return self._f_str
+        f_str = self._f_str
+        if not f_str or f_str.isspace():
+            return [Text(f_str)]
 
         nodes = []
 
-        for match_obj in _pattern.finditer(self._f_str):
+        for match_obj in _pattern.finditer(f_str):
             groups = match_obj.groupdict()
             ltext = groups['ltext'] or ''
             lbraces = (groups['lbrace'] or '') + (groups['lbraces'] or '')
@@ -126,6 +129,9 @@ class Parser(object):
                 raw, rbraces = rbraces, rbraces.rstrip()
                 rtext = ' ' * (len(raw)-len(rbraces)) + rtext
 
+            if all(s == '' for s in (ltext, lbraces, mtext, rbraces, rtext)):
+                continue
+
             if not lbraces and not rbraces:
                 nodes.append(Text(ltext, mtext, rtext))
                 continue
@@ -133,33 +139,47 @@ class Parser(object):
             if ltext:
                 nodes.append(Text(ltext))
 
-            lb_num, rb_num = lbraces.count('{'), rbraces.count('}')
-            if mtext.isspace() or not (lbraces and rbraces):
+            if not mtext or mtext.isspace() or not (lbraces and rbraces):
+                texts = []
                 if lbraces:
-                    self._check_braces(lbraces, True, '{')
+                    texts.append(self._check_braces(lbraces, True, '{', True))
+                texts.append(mtext)
                 if rbraces:
-                    self._check_braces(rbraces, True, '}')
-                nodes.append(Text('{' * (lb_num>>1), mtext, '}' * (rb_num>>1)))
-                continue
-
-            is_comp = self._is_dict_or_set_comp(mtext)
-            if is_comp:
-                self._check_braces(lbraces, True, '{')
-                self._check_braces(rbraces, True, '}')
-                b_num = (lb_num-1)>>1
-                if b_num > 0:
-                    nodes.append(Text('{' * b_num))
-                mtext = self._replace_with_spaces(mtext)
-                expr = '{{{}}}'.format(self._parse_node_str(mtext))
-                nodes.append(Expression(expr, '{{{{{}}}}}'.format(mtext)))
-                if b_num:
-                    nodes.append(Text('}' * b_num))
+                    texts.append(self._check_braces(rbraces, True, '}', True))
+                nodes.append(Text(*texts))
             else:
-                self._check_braces(lbraces, False, '{')
-                self._check_braces(rbraces, False, '}')
-                nodes.append(Text('{' * (lb_num>>1)))
-                nodes.append(self._parse_node(mtext))
-                nodes.append(Text('}' * (rb_num>>1)))
+                is_comp = self._is_dict_or_set_comp(mtext)
+                if is_comp:
+                    lbtext = self._check_braces(lbraces, True, '{')
+                    rbtext = self._check_braces(rbraces, True, '}')
+                    if lbtext:
+                        nodes.append(Text(lbtext))
+                    expr = '{{{}}}'.format(self._replace_with_spaces(mtext))
+                    nodes.append(Expression(expr, '{{{}}}'.format(expr)))
+                    if rbtext:
+                        nodes.append(Text(rbtext))
+                else:
+                    lb_num, rb_num = lbraces.count('{'), rbraces.count('}')
+                    if lb_num == rb_num and lb_num > 0 and lb_num % 2 == 0:
+                        texts = []
+                        if lbraces:
+                            texts.append(
+                                self._check_braces(lbraces, True, '{', True))
+                        texts.append(mtext)
+                        if rbraces:
+                            texts.append(
+                                self._check_braces(rbraces, True, '}', True))
+                        nodes.append(Text(*texts))
+                    else:
+                        lbtext = self._check_braces(lbraces, False, '{')
+                        rbtext = self._check_braces(rbraces, False, '}')
+                        lb_num = lb_num >> 1
+                        if lbtext:
+                            nodes.append(Text(lbtext))
+                        nodes.append(self._parse_node(mtext))
+                        rb_num = rb_num >> 1
+                        if rbtext:
+                            nodes.append(Text(rbtext))
 
             if rtext:
                 nodes.append(Text(rtext))
@@ -171,30 +191,74 @@ class Parser(object):
         if _pattern.match(text):
             try:
                 self._ast_parse('{{{}}}'.format(text))
-                print('yes', text)
             except SyntaxError:
-                print('no', text)
                 return False
             else:
                 return True
         return False
 
-    def _check_braces(self, braces, is_even, symbol):
-        # '{{ {{ {{ {' style may exists.
+    def _check_braces(self, braces, is_even, symbol, strict_even=False):
+        # .........
+        btexts = []
         pieces = braces.split()
+        if symbol == '}':
+            pieces = pieces[::-1]
+            braces = braces[::-1]
 
-        for piece in pieces[:-1]:
-            if len(piece)%2 != 0:
+        if len(pieces) == 1:
+            nbraces = len(braces)
+            mod = nbraces % 2
+            if is_even:
+                if mod != 0:
+                    raise SyntaxError(
+                            'Single "{}" encountered in format string'.format(
+                                symbol))
+            elif mod != 1:
                 raise SyntaxError(
                     'Single "{}" encountered in format string'.format(symbol))
+            if not strict_even:
+                nbraces -= 1
+            return symbol * (nbraces >> 1)
 
-        res = len(pieces[-1]) % 2
-        if is_even and res != 0:
+        pos, has_rest = 0, False
+        for idx, piece in enumerate(pieces):
+            div, mod = divmod(len(piece), 2)
+            if mod != 0:
+                if is_even and strict_even:
+                    raise SyntaxError(
+                        'Single "{}" encountered in format string'.format(
+                            symbol)
+                    )
+                else:
+                    has_rest = True
+                    break
+
+            if idx == 0:
+                pos += len(piece)
+            else:
+                end = braces.find(piece, pos)
+                btexts.append(braces[pos: end])
+                pos = end + len(piece)
+            btexts.append(symbol * div)
+
+        if has_rest:
+            end = braces.find(piece, pos)
+            btexts.append(braces[pos: end])
+        else:
+            if btexts:
+                btexts.pop()
+
+        rest = len(''.join(pieces[idx:]))
+        if is_even:
+            if rest != 2:
+                raise SyntaxError(
+                    'Single "{}" encountered in format string'.format(symbol))
+        elif rest != 1:
             raise SyntaxError(
                 'Single "{}" encountered in format string'.format(symbol))
-        if not is_even and res == 0:
-            raise SyntaxError(
-                'Single "{}" encountered in format string'.format(symbol))
+        if symbol == '}':
+            btexts = btexts[::-1]
+        return ''.join(btexts)
 
     def _replace_with_spaces(self, text, _table=string.maketrans('\t\n\r\f\v', ' '*5)):
         return text.strip().translate(_table)
@@ -222,7 +286,8 @@ class Parser(object):
             left, fmt_spec = splitd
             if not fmt_spec:
                 raise SyntaxError('need format specifier after ":"')
-            elif ')' in fmt_spec or '}' in fmt_spec or 'lambda' in left:
+            elif any((s[0] in left and s[1] in fmt_spec)
+                     for s in ['""', "''", '()', '{}']) or 'lambda' in left:
                 left = node_str
         else:
             left = splitd[0]
