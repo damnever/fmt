@@ -8,4 +8,5 @@ clean-pyc:
 	find . -type d -name '__pycache__' -exec rm -rf {} +
 
 run-tests:
-	python -m unittest discover pigar/tests/ -t . -v
+	pip install -e .
+	py.test tests -vvv
