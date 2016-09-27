@@ -4,7 +4,6 @@ from __future__ import absolute_import
 
 import re
 import ast
-import string
 import sys
 from functools import partial
 
@@ -98,11 +97,11 @@ class Parser(object):
         (?P<rbrace>\})?
             (?P<rbraces>(?(rbrace)[\s\}]*))
         (?P<rtext>[^\{\}]*)
-        """, re.S|re.X|re.M
+        """, re.S | re.X | re.M
     )
     _PATTERN_COMP = re.compile(
         r'[a-zA-Z0-9_:]+\s+for\s+[a-zA-Z0-9_,]+\s+in\s+.+',
-        re.S|re.X|re.M)
+        re.S | re.X | re.M)
     _ast_parse = partial(ast.parse, filename='<f-strings>', mode='eval')
 
     def __init__(self, f_str):
@@ -124,10 +123,10 @@ class Parser(object):
             rtext = groups['rtext'] or ''
             if lbraces:
                 raw, lbraces = lbraces, lbraces.rstrip()
-                mtext = ' ' * (len(raw)-len(lbraces)) + mtext
+                mtext = ' ' * (len(raw) - len(lbraces)) + mtext
             if rbraces:
                 raw, rbraces = rbraces, rbraces.rstrip()
-                rtext = ' ' * (len(raw)-len(rbraces)) + rtext
+                rtext = ' ' * (len(raw) - len(rbraces)) + rtext
 
             if all(s == '' for s in (ltext, lbraces, mtext, rbraces, rtext)):
                 continue
@@ -211,8 +210,8 @@ class Parser(object):
             if is_even:
                 if mod != 0:
                     raise SyntaxError(
-                            'Single "{}" encountered in format string'.format(
-                                symbol))
+                        'Single "{}" encountered in format string'.format(
+                            symbol))
             elif mod != 1:
                 raise SyntaxError(
                     'Single "{}" encountered in format string'.format(symbol))
@@ -260,8 +259,11 @@ class Parser(object):
             btexts = btexts[::-1]
         return ''.join(btexts)
 
-    def _replace_with_spaces(self, text, _table=string.maketrans('\t\n\r\f\v', ' '*5)):
-        return text.strip().translate(_table)
+    def _replace_with_spaces(self, text, _repl='\t\n\r\f\v'):
+        text = text.strip()
+        for r in _repl:
+            text = text.replace(r, ' ')
+        return text
 
     def _parse_node(self, node_str):
         node_str = self._replace_with_spaces(node_str)
@@ -286,8 +288,7 @@ class Parser(object):
             left, fmt_spec = splitd
             if not fmt_spec:
                 raise SyntaxError('need format specifier after ":"')
-            elif any((s[0] in left and s[1] in fmt_spec)
-                     for s in ['""', "''", '()', '{}']) or 'lambda' in left:
+            elif 'lambda' in left:
                 left = node_str
         else:
             left = splitd[0]

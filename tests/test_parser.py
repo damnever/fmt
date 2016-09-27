@@ -13,13 +13,8 @@ def test_parse_node_str():
     assert 'name' == parser._parse_node_str('name!a')
     assert 'name' == parser._parse_node_str('name:fmt')
     assert 'name' == parser._parse_node_str('name!r:fmt')
-    assert ('{k:v for kv in d.items()}' ==
-            parser._parse_node_str('{k:v for kv in d.items()}'))
-    assert ('{i for i in range(5)}' ==
-            parser._parse_node_str('{i for i in range(5)}'))
     assert ('map(lambda x: x, ls)' ==
             parser._parse_node_str('map(lambda x: x, ls)'))
-
 
     with pytest.raises(SyntaxError):
         parser._parse_node_str('name!n')

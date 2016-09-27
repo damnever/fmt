@@ -8,5 +8,7 @@ clean-pyc:
 	find . -type d -name '__pycache__' -exec rm -rf {} +
 
 run-tests:
+	flake8 fmt
+	# pylint fmt
 	pip install -e .
 	py.test tests -vvv
