@@ -29,13 +29,13 @@ Usages
         def scope():
             l_foo = 'local-foo'
             l_bar = 'local-bar'
-            print( f('{l_foo}, {l_bar}') )  # 'local-foo, local-bar'
+            print( f('{l_foo}, {l_bar}') )    # 'local-foo, local-bar'
             print( f('{g_foo}, {g_bar!r}') )  # "global-foo, 'global-bar'"
 
         scope()
-        print( f('{{ }}') )  # '{ }'
-        print( f('hex: {g_num:#x}') )  # '0x17'
-        print( f('{os.EX_OK}') )  # '0'
+        print( f('{{ }}') )                   # '{ }'
+        print( f('hex: {g_num:#x}') )         # '0x17'
+        print( f('{os.EX_OK}') )              # '0'
         print( f('{g_ls[0]}, {g_ls[1]}, {g_ls[2]}') )  # '1, 2, 3'
 
 
@@ -70,16 +70,16 @@ Usages
             def __format__(self, fmt):
                 return 'abcdefg'[int(fmt)]
 
-        print( f('{1234567890:,}') )  # '1,234,567,890'
-        print( f('{1 + 2}') )  # '3'
-        print( f('{str(1 + 2)!r}') )  # "'3'"
-        print( f('{[i for i in range(5)]}') )  # '[0, 1, 2, 3, 4]'
+        print( f('{1234567890:,}') )             # '1,234,567,890'
+        print( f('{1 + 2}') )                    # '3'
+        print( f('{str(1 + 2)!r}') )             # "'3'"
+        print( f('{[i for i in range(5)]}') )    # '[0, 1, 2, 3, 4]'
         ls = range(5)
-        print( f('{{i for i in ls}}') )  # 'set([0, 1, 2, 3, 4])' or '{0, 1, 2, 3, 4}'
+        print( f('{{i for i in ls}}') )          # 'set([0, 1, 2, 3, 4])' or '{0, 1, 2, 3, 4}'
         print( f('{{k:v for k,v in zip(range(3), range(3, 6))}}') )  # '{0: 3, 1: 4, 2: 5}'
-        print( f('{datetime(1994, 11, 6):%Y-%m-%d}') )  # '1994-11-06'
-        print( f('{list(map(lambda x: x+1, range(3)))}') )  #  '[1, 2, 3]'
-        print( f('{S()!r} {S()!s} {S():1}') )  # 'hello hi b'
+        print( f('{datetime(1994, 11, 6):%Y-%m-%d}') )               # '1994-11-06'
+        print( f('{list(map(lambda x: x+1, range(3)))}') )           # '[1, 2, 3]'
+        print( f('{S()!r} {S()!s} {S():1}') )                        # 'hello hi b'
 
 
 - Also, you can register some namespaces for convenience.
@@ -90,14 +90,14 @@ Usages
         import fmt as f
 
         f.mregister({'x': 1, 'y': 2})  # register multiple
-        f.register('z', 3)  # register only one
+        f.register('z', 3)             # register only one
 
         def func(x, y):
             return x + y
 
+        print( f('{func(x, y)}') )  # '3'
         print( f('{func(x, z)}') )  # '4'
         print( f('{func(y, z)}') )  # '5'
-        print( f('{func(x, y)}') )  # '6'
 
 
 Installation
