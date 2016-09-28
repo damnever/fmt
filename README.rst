@@ -39,7 +39,7 @@ Usages
         print( f('{g_ls[0]}, {g_ls[1]}, {g_ls[2]}') )  # '1, 2, 3'
 
 
-- **NOTE**: **Closure** will be a little tricky, must pass the outside scope variables as parameters to f,
+- **NOTE**: **Closure** will be a little tricky, must pass the outside scope variables as arguments to f,
   which added a reference to inside the closure in order this can work.
 
     .. code:: python
@@ -83,7 +83,7 @@ Usages
 
 
 - Also, you can register some namespaces for convenience.
-  *NOTE* local namespace may cover the namespace that you registered.
+  **NOTE**: local namespace may cover the namespace that you registered.
 
     .. code:: python
 
