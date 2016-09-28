@@ -8,4 +8,7 @@ clean-pyc:
 	find . -type d -name '__pycache__' -exec rm -rf {} +
 
 run-tests:
-	python -m unittest discover pigar/tests/ -t . -v
+	flake8 fmt
+	# pylint fmt
+	pip install -e .
+	py.test tests -vvv

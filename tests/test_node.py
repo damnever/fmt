@@ -7,6 +7,8 @@ from fmt.fmt import Text, Constant, Expression
 def test_Text():
     text = 'I am a good man, /(ㄒoㄒ)/~~'
     assert text == Text(text).generate(None)
+    texts = ['yes', 'or', 'no']
+    assert ''.join(texts) == Text(*texts).generate(None)
 
 
 def test_Constant():
