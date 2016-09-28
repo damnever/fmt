@@ -2,6 +2,7 @@
 __pycache__/
 *-info/
 *.egg-info/
-insert.py
+test.py
 build/
 dist/
+.cache/
