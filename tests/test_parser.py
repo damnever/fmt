@@ -65,7 +65,7 @@ def test_check_braces():
     assert '' == parser._check_braces('{{', True, '{')
     assert ' }' == parser._check_braces('} }}', False, '}')
     assert '{ ' == parser._check_braces('{{ {{', True, '{')
-    assert '{ ' == parser._check_braces('{{ {{', True, '{', True)
+    assert '{ {' == parser._check_braces('{{ {{', True, '{', True)
     assert '{{' == parser._check_braces('{{{{', True, '{', True)
 
     with pytest.raises(SyntaxError):

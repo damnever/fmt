@@ -78,7 +78,6 @@ class Expression(Node):
     def generate(self, namespace):
         ns = {}
         try:
-            print('{}={}'.format(self._name, self._expr))
             exec('{}={}'.format(self._name, self._expr), namespace.copy(), ns)
         except NameError as e:
             name = e.args[0].split("'", 3)[1]
@@ -244,7 +243,7 @@ class Parser(object):
             end = braces.find(piece, pos)
             btexts.append(braces[pos: end])
         else:
-            if btexts:
+            if not strict_even:
                 btexts.pop()
 
         rest = len(''.join(pieces[idx:]))
