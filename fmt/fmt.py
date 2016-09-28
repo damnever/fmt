@@ -30,7 +30,10 @@ class Fmt(object):
         ns.update(frame.f_locals)
 
         nodes = Parser(f_str).parse()
-        return generate(nodes, ns)
+        try:
+            return generate(nodes, ns)
+        finally:
+            del frame  # avoid reference cycle
 
 
 def generate(nodes, namespace):
