@@ -2,7 +2,6 @@
 
 """
 f-strings(Python 3.6) style literal string interpolation.
-Ref: https://www.python.org/dev/peps/pep-0498/
 """
 
 from __future__ import absolute_import
@@ -14,6 +13,9 @@ from .fmt import Fmt
 
 version = __version__ = '0.1.0'
 version_info = [int(num) for num in version.split('.')]
+__author__ = 'damnever (X.C Dong)'
+__email__ = 'dxc.wolf@gmail.com'
+__license__ = 'The BSD 3-Clause License'
 
 
 # Install the Fmt() object in sys.modules,

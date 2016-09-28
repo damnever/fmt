@@ -19,14 +19,14 @@ with codecs.open('README.rst', encoding='utf-8') as f:
 setup(
     name='fmt',
     version=version,
-    description=('f-strings(Python 3.6) style literal string interpolation.'),
+    description='f-strings(Python 3.6) style literal string interpolation.',
     long_description=long_description,
     url='https://github.com/damnever/fmt',
     author='damnever',
     author_email='dxc.wolf@gmail.com',
     license='The BSD 3-Clause License',
     classifiers=[
-        'Development Status :: 5 - Production/Stable',
+        'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
         'Topic :: Utilities',
         'License :: OSI Approved :: BSD License',
@@ -36,7 +36,6 @@ setup(
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
     ],
-    keywords='requirements tool',
-    packages=find_packages(),
-    include_package_data=True,
+    keywords='f-strings, format, literal string interpolation',
+    packages=find_packages()
 )
