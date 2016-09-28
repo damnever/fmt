@@ -35,10 +35,8 @@ class Fmt(object):
 
 def generate(nodes, namespace):
     contents = []
-
     for node in nodes:
         contents.append(node.generate(namespace))
-
     return ''.join(contents)
 
 
@@ -65,7 +63,7 @@ class Constant(Node):
         value = namespace.get(name, None)
         if value is None:
             raise NameError(
-                '"{}" cannot be found in any namespace.'.format(name))
+                '"{}" cannot be found in any namespaces.'.format(name))
         return self._fmt.format(**{name: value})
 
 
@@ -82,7 +80,7 @@ class Expression(Node):
         except NameError as e:
             name = e.args[0].split("'", 3)[1]
             raise NameError(
-                '"{}" cannot be found in any namespace.'.format(name))
+                '"{}" cannot be found in any namespaces.'.format(name))
         return self._fmt.format(**ns)
 
 
@@ -254,6 +252,7 @@ class Parser(object):
         elif rest != 1:
             raise SyntaxError(
                 'Single "{}" encountered in format string'.format(symbol))
+
         if symbol == '}':
             btexts = btexts[::-1]
         return ''.join(btexts)

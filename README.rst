@@ -1,14 +1,15 @@
-## f-strings(Python 3.6) style literal string interpolation.
-============================================================
+f-strings(Python 3.6) style literal string interpolation.
+==========================================================
 
 Ref: https://www.python.org/dev/peps/pep-0498/
 
-Currently I got stuck in some corner cases, need to find a better way, define a micro-language?..
+:cry:
 
 Example
 -------
 
-.. code::python
+.. code:: python
+
     import fmt as f
 
     a = 0
@@ -28,5 +29,5 @@ Example
             print(f("a = {a}, b = {b}, foo = {foo}, bar = {bar}", foo, bar))
         return inner
 
-    func()
-    outer('foo')()
+    func()  # a = 0, b = 'bb', c = c@, dd() = {dd}, set == {set([0, 1, 2, 3, 4])}
+    outer('foo')()  # a = 0, b = bb, foo = foo, bar = bar

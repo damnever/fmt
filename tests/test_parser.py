@@ -82,7 +82,7 @@ def test_check_braces():
         parser._check_braces('{{ {{', False, '{')
 
 
-def test_parse():
+def test_parse_with_only_text():
     nodes = Parser('').parse()
     assert 1 == len(nodes)
     assert isinstance(nodes[0], Text)
@@ -102,18 +102,6 @@ def test_parse():
     assert 1 == len(nodes)
     assert isinstance(nodes[0], Text)
     assert '{}' == nodes[0]._content
-
-    nodes = Parser('{name}').parse()
-    assert 1 == len(nodes)
-    assert isinstance(nodes[0], Constant)
-    assert 'name' == nodes[0]._name
-    assert '{name}' == nodes[0]._fmt
-
-    nodes = Parser('{ name }').parse()
-    assert 1 == len(nodes)
-    assert isinstance(nodes[0], Constant)
-    assert 'name' == nodes[0]._name
-    assert '{name}' == nodes[0]._fmt
 
     nodes = Parser('{{name}}').parse()
     assert 1 == len(nodes)
@@ -140,6 +128,20 @@ def test_parse():
     assert '{ name }' == nodes[0]._content
     assert isinstance(nodes[1], Text)
     assert ' ' == nodes[1]._content
+
+
+def test_parse_constant():
+    nodes = Parser('{name}').parse()
+    assert 1 == len(nodes)
+    assert isinstance(nodes[0], Constant)
+    assert 'name' == nodes[0]._name
+    assert '{name}' == nodes[0]._fmt
+
+    nodes = Parser('{ name }').parse()
+    assert 1 == len(nodes)
+    assert isinstance(nodes[0], Constant)
+    assert 'name' == nodes[0]._name
+    assert '{name}' == nodes[0]._fmt
 
     nodes = Parser('text {{{name} text').parse()
     assert 4 == len(nodes)
@@ -221,6 +223,8 @@ def test_parse():
     assert isinstance(nodes[3], Text)
     assert '}' == nodes[3]._content
 
+
+def test_parse_expression():
     nodes = Parser('text {{v for v in range(10)}}').parse()
     assert 2 == len(nodes)
     assert isinstance(nodes[0], Text)
@@ -257,6 +261,8 @@ def test_parse():
     assert '{name}' == nodes[1]._fmt
     assert 'func()' == nodes[1]._expr
 
+
+def test_parser_with_error():
     with pytest.raises(SyntaxError):
         Parser('{').parse()
     with pytest.raises(SyntaxError):
