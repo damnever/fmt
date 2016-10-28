@@ -45,7 +45,7 @@ def generate(nodes, namespace):
 
 class Node(object):
     def generate(self, ns):
-        raise NotImplemented()
+        raise NotImplementedError()
 
 
 class Text(Node):
