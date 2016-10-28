@@ -10,6 +10,6 @@ test:
 	pip install -e .
 	py.test tests -vvv
 
-dist:
+pkg:
 	python setup.py bdist_wheel
 	python setup.py sdist
