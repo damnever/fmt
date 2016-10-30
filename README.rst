@@ -79,7 +79,7 @@ Usages
         print( f('{{k:v for k,v in zip(range(3), range(3, 6))}}') )  # '{0: 3, 1: 4, 2: 5}'
         print( f('{datetime(1994, 11, 6):%Y-%m-%d}') )               # '1994-11-06'
         print( f('{list(map(lambda x: x+1, range(3)))}') )           # '[1, 2, 3]'
-        print( f('{S()!r} {S()!s} {S():1}') )                        # 'hello hi b'
+        print( f('{S()!s}, {S()!r}, {S():1}') )                      # 'hello, hi, b'
 
 
 - Also, you can register some namespaces for convenience.
