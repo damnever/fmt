@@ -101,3 +101,8 @@ def test_fmt():
             f('int:{23:d}, hex:{23:x}, oct:{23:#o}, bin:{23:#b}'))
     assert '1,234,567,890' == f('{1234567890:,}')
     assert '1994-11-06' == f('{datetime(1994, 11, 6):%Y-%m-%d}')
+
+    assert g_foo not in f._g_ns
+    assert g_bar not in f._g_ns
+    assert l_foo not in f._g_ns
+    assert l_bar not in f._g_ns
