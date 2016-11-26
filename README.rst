@@ -49,7 +49,7 @@ Usages
         def outer(x='xx'):
             y = 'yy'
             def inner():
-                print( f('{x}, {y}', x, y) )  # "xx, 'yy'"
+                print( f('{x}, {y}', x, y) )  # "xx, yy"
             return inner
 
         outer()()
@@ -83,7 +83,6 @@ Usages
 
 
 - Also, you can register some namespaces for convenience.
-  **NOTE**: local namespace may cover the namespace that you registered.
 
     .. code:: python
 
@@ -98,6 +97,9 @@ Usages
         print( f('{func(x, y)}') )  # '3'
         print( f('{func(x, z)}') )  # '4'
         print( f('{func(y, z)}') )  # '5'
+
+
+- **NOTE**: ``locals()`` maybe cover the ``globals()``, ``globals()`` maybe cover the namespaces that you registered.
 
 
 Installation
