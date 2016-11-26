@@ -5,6 +5,7 @@ from __future__ import absolute_import
 import re
 import ast
 import sys
+from copy import deepcopy
 from functools import partial
 
 
@@ -25,7 +26,7 @@ class Fmt(object):
     def __call__(self, f_str, *_args):
         frame = sys._getframe(1)
         # locals will cover globals
-        ns = self._g_ns
+        ns = deepcopy(self._g_ns)
         ns.update(frame.f_globals)
         ns.update(frame.f_locals)
 
