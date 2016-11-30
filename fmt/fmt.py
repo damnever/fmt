@@ -64,8 +64,9 @@ class Constant(Node):
 
     def generate(self, namespace):
         name = self._name
-        value = namespace.get(name, None)
-        if value is None:
+        try:
+            value = namespace[name]
+        except KeyError:
             raise NameError(
                 '"{}" cannot be found in any namespaces.'.format(name))
         return self._fmt.format(**{name: value})
