@@ -11,7 +11,7 @@ import sys
 from .fmt import Fmt
 
 
-version = __version__ = '0.2.1'
+version = __version__ = '0.2.2'
 version_info = [int(num) for num in version.split('.')]
 __author__ = 'damnever (X.C Dong)'
 __email__ = 'dxc.wolf@gmail.com'

@@ -125,10 +125,10 @@ class Parser(object):
             rtext = groups['rtext'] or ''
             if lbraces:
                 raw, lbraces = lbraces, lbraces.rstrip()
-                mtext = ' ' * (len(raw) - len(lbraces)) + mtext
+                mtext = raw[len(lbraces):] + mtext
             if rbraces:
                 raw, rbraces = rbraces, rbraces.rstrip()
-                rtext = ' ' * (len(raw) - len(rbraces)) + rtext
+                rtext = raw[len(rbraces):] + rtext
 
             if all(s == '' for s in (ltext, lbraces, mtext, rbraces, rtext)):
                 continue
