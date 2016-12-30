@@ -9,10 +9,18 @@ from copy import deepcopy
 from functools import partial
 
 
+PY3 = sys.version_info[0] == 3
+if PY3:
+    fmt_types = str, bytes
+else:
+    fmt_types = basestring, unicode  # noqa: F821
+
+
 class Fmt(object):
 
     def __init__(self):
         self._g_ns = {}
+        self._nodes_cache = {}
 
     def register(self, name, value, update=False):
         if not update and name in self._g_ns:
@@ -24,13 +32,21 @@ class Fmt(object):
             self.register(k, v, update)
 
     def __call__(self, f_str, *_args):
+        if not isinstance(f_str, fmt_types):
+            raise ValueError('Unsupported type as format '
+                             'string: {}({})'.format(type(f_str), f_str))
         frame = sys._getframe(1)
         # locals will cover globals
         ns = deepcopy(self._g_ns)
         ns.update(frame.f_globals)
         ns.update(frame.f_locals)
 
-        nodes = Parser(f_str).parse()
+        # cache nodes, if already parsed
+        nodes = self._nodes_cache.get(f_str, None)
+        if nodes is None:
+            nodes = Parser(f_str).parse()
+            self._nodes_cache[f_str] = nodes
+
         try:
             return generate(nodes, ns)
         finally:
@@ -45,6 +61,18 @@ def generate(nodes, namespace):
 
 
 class Node(object):
+    # flyweight pattern: cache instances
+    _instances = {}
+
+    def __new__(cls, *args, **kwargs):
+        key = (cls, args, tuple(kwargs.items()))
+        instance = cls._instances.get(key, None)
+        if instance is None:
+            instance = super(Node, cls).__new__(cls)
+            instance.__init__(*args, **kwargs)
+            cls._instances[key] = instance
+        return instance
+
     def generate(self, ns):
         raise NotImplementedError()
 

@@ -4,6 +4,20 @@ import pytest
 from fmt.fmt import Text, Constant, Expression
 
 
+def test_flyweight():
+    assert id(Text('foo', 'bar')) == id(Text('foo', 'bar'))
+    assert id(Constant('foo', 'bar')) == id(Constant('foo', 'bar'))
+    assert id(Expression('foo', 'bar')) == id(Expression('foo', 'bar'))
+
+    assert id(Text('foo', 'bar')) != id(Text('bar', 'foo'))
+    assert id(Constant('foo', 'bar')) != id(Constant('bar', 'foo'))
+    assert id(Expression('foo', 'bar')) != id(Expression('bar', 'foo'))
+
+    assert id(Text('foo', 'bar')) != id(Constant('foo', 'bar'))
+    assert id(Text('foo', 'bar')) != id(Expression('foo', 'bar'))
+    assert id(Constant('foo', 'bar')) != id(Expression('foo', 'bar'))
+
+
 def test_Text():
     text = 'I am a good man, /(ㄒoㄒ)/~~'
     assert text == Text(text).generate(None)
