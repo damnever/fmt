@@ -1,8 +1,35 @@
 # -*- coding: utf-8 -*-
 
 import sys
-from datetime import datetime
-import fmt as  f
+from datetime import datetime  # noqa
+from fmt.fmt import Fmt, Parser, Text
+import fmt as f
+
+
+def test_parsed_nodes_been_cached(monkeypatch):
+    call_count = []
+
+    def _parse(self):
+        call_count.append(1)
+        return [Text('baz')]
+
+    monkeypatch.setattr(Parser, 'parse', _parse)
+    fmt = Fmt()
+
+    count = 0
+    for f_str in ('foo', 'bar'):
+        count += 1
+        fmt(f_str)
+        assert f_str in fmt._nodes_cache
+        assert len(call_count) == count
+
+        value = fmt._nodes_cache[f_str][0]
+
+        for _ in range(5):
+            fmt(f_str)
+            assert f_str in fmt._nodes_cache
+            assert len(call_count) == count, f_str
+            assert id(value) == id(fmt._nodes_cache[f_str][0])
 
 
 g_foo = 'global-foo'
@@ -34,6 +61,7 @@ def test_namespace():
 def test_closure_namespace():
     def outer(x):
         y = 'yy'
+
         def inner():
             z = 'zz'
             globals_, locals_ = get_namesapce(x, y)
@@ -54,7 +82,9 @@ def test_fmt():
     l_bar = 'local-bar'
     ls_num = range(5)
     ls_ch = ['a', 'b', 'c', 'd', 'e']
+
     class Baz(object):
+
         def __str__(self):
             return 'BAZ'
 
@@ -77,18 +107,20 @@ def test_fmt():
     assert '1314' == f('{func(x, y)}')
 
     def outer(arg):
+
         def inner():
             assert '{ outer-arg }' == f('{{ {arg} }}', arg)
         return inner
+
     outer('outer-arg')()
 
-    assert '[0, 1, 2, 3, 4]' == f('{list(range(5))}')  # Py3 range return iterator
+    # Py3 range return iterator
+    assert '[0, 1, 2, 3, 4]' == f('{list(range(5))}')
     assert '[0, 1, 2, 3, 4]' == f('{[i for i in ls_num]}')
     if sys.version_info[0] == 2:
         assert 'set([0, 1, 2, 3, 4])' == f('{{i for i in ls_num}}')
     else:
         assert '{0, 1, 2, 3, 4}' == f('{{i for i in ls_num}}')
-
 
     assert ("{0: 'a', 1: 'b', 2: 'c', 3: 'd', 4: 'e'}" ==
             f('{{k:v for k,v in zip(ls_num, ls_ch)}}'))
