@@ -133,6 +133,10 @@ def test_fmt():
             f('int:{23:d}, hex:{23:x}, oct:{23:#o}, bin:{23:#b}'))
     assert '1,234,567,890' == f('{1234567890:,}')
     assert '1994-11-06' == f('{datetime(1994, 11, 6):%Y-%m-%d}')
+    assert '1994-11-06 00:00:00' == f('{datetime(1994, 11, 6, 0, 0, 0):%Y-%m-%d %H:%M:%S}')
+    assert 'None' == f('{(lambda: None)()}')
+    assert '1994:11:06' == f('{(lambda: datetime(1994, 11, 6))():%Y:%m:%d}')
+    assert '1994-11-06 00:00:00' == f('{(lambda: datetime(1994, 11, 6, 0, 0, 0))():%Y-%m-%d %H:%M:%S}')
 
     assert g_foo not in f._g_ns
     assert g_bar not in f._g_ns

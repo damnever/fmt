@@ -104,7 +104,7 @@ class Expression(Node):
     def __init__(self, expr, fmt, name='name'):
         self._expr = expr
         self._name = name
-        self._fmt = fmt.replace(expr, name).replace(' ', '')
+        self._fmt = name.join(s.strip() for s in fmt.split(expr))
 
     def generate(self, namespace):
         ns = {}
@@ -314,15 +314,37 @@ class Parser(object):
         #   <optional : format specifier>
         # } <text> ...'''
         expr = None
-        splitd = node_str.rsplit(':', 1)
-        if len(splitd) > 1:
-            left, fmt_spec = splitd
-            if not fmt_spec:
+        if ':' in node_str:
+            if node_str.startswith('('):
+                brackets = 1
+                for i, c in enumerate(node_str[1:]):
+                    if c == '(':
+                        brackets += 1
+                    elif c == ')':
+                        brackets -= 1
+                        if brackets == 0:
+                            break
+                i += 1
+                if brackets != 0:
+                    raise SyntaxError('unexpected EOF at {}'.format(
+                        node_str[i]))
+                i += 1
+                if len(node_str) > i+2 and node_str[i] == '(':
+                    i += 2
+                    if node_str[i] != ':':
+                        raise SyntaxError('unexpected EOF at {}'.format(
+                            node_str[i]))
+                    left, fmt_spec = node_str[:i], node_str[i+1:]
+                else:
+                    left, fmt_spec = node_str, None
+            else:
+                left, fmt_spec = node_str.split(':', 1)
+                if 'lambda' in left:
+                    left = node_str
+            if fmt_spec is not None and not fmt_spec:
                 raise SyntaxError('need format specifier after ":"')
-            elif 'lambda' in left:
-                left = node_str
         else:
-            left = splitd[0]
+            left = node_str
 
         splitd = left.rsplit('!', 1)
         if len(splitd) > 1:
